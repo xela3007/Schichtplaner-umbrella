@@ -1,0 +1,2 @@
+{ "mode": "advanced",
+  "answers": { "delivery": "web_app", "auth": "no", "multi_tenancy": "yes" } }

@@ -1,0 +1,171 @@
+# Artifacture Bootstrap Catalog
+# ==============================
+# The question DAG for greenfield project genesis.
+#
+# RULES (enforced by scripts/derive.py and by the intake skill):
+# - Every node is a STRUCTURAL question. Purpose questions are forbidden here.
+#   Litmus test: if answering requires thinking about the app's overall purpose,
+#   the question does not belong in this catalog — it belongs in the backlog.
+# - A node is VISIBLE only if ALL its edge conditions are satisfied (AND semantics).
+#   Multiple incoming edges = multiple parents = this is a DAG, not a tree.
+# - Every node has exactly one default option (the "Hausmeinung").
+#   The default path must answer the whole catalog without the user thinking.
+# - advanced: true nodes are skipped on the default path entirely.
+# - Changing this file is a curated act: bump version, record why in CHANGELOG.
+
+version: "0.6.0"
+
+# ADRs, die IMMER erzeugt werden — Hausregeln, keine Fragen. Sie haben kein
+# Enum und keine Sichtbarkeit; wer sie ändern will, ändert das ADR selbst und
+# vermerkt die Änderung mit Datum (z. B. `Status: accepted, geändert
+# JJJJ-MM-TT`); was nicht mehr gilt, raus aus `ADR/` (siehe check-adr RULES
+# A4). Ein Node wäre hier falsch: eine Frage mit nur einer legalen Antwort ist
+# keine Frage.
+# `visible_if` gilt analog zu Nodes (AND-Semantik) — RBAC braucht Auth.
+mandatory_adrs:
+  - key: rbac
+    adr_template: adr-rbac.md
+    visible_if:
+      - { node: auth, in: ["yes"] }
+
+  # Styling/Komponenten/Formulare — getrennt vom Frontend-Stack, weil sich
+  # UI-Konventionen laufend ändern und der Stack selten.
+  - key: ui_conventions
+    adr_template: adr-ui-conventions.md
+    visible_if:
+      - { node: frontend, in: [react] }
+
+nodes:
+
+  - key: delivery
+    question: "Was für eine Art von Anwendung wird das?"
+    adr_template: adr-delivery.md
+    options:
+      - value: web_app
+        label: "Web-App (Frontend + API)"
+        default: true
+      - value: api_service
+        label: "Reiner API-Service (headless)"
+      - value: cli_tool
+        label: "CLI-Tool / Shell-Anwendung"
+      - value: script
+        label: "Script / Einmal-Werkzeug"
+
+  - key: language
+    question: "Welche Sprache für den Backend-/Kern-Code?"
+    adr_template: adr-language.md
+    advanced: true          # default path: TypeScript ohne Rückfrage
+    options:
+      - value: typescript
+        label: "TypeScript (Node, Hono)"
+        default: true
+      - value: csharp
+        label: ".NET / C#"
+      - value: python
+        label: "Python"
+
+  - key: repo_form
+    # NOTE: the umbrella is ALWAYS its own code-free repo. This node only
+    # decides what lives under src/ — one code repo or several service repos.
+    question: "Ein Code-Repo unter src/ oder mehrere Service-Repos?"
+    adr_template: adr-repo-form.md
+    advanced: true          # default path: ein Code-Repo ohne Rückfrage
+    visible_if:
+      - { node: delivery, in: [web_app, api_service] }
+    options:
+      - value: single
+        label: "Ein Code-Repo unter src/"
+        default: true
+      - value: multi
+        label: "Mehrere Service-Repos unter src/{ServiceName}"
+
+  - key: persistence
+    question: "Braucht die Anwendung eine Datenbank?"
+    adr_template: adr-persistence.md
+    visible_if:
+      - { node: delivery, in: [web_app, api_service] }
+    options:
+      - value: neon_postgres
+        label: "Ja — Postgres (Neon)"
+        default: true
+      - value: none
+        label: "Nein — zustandslos"
+
+  - key: local_state
+    question: "Muss das Tool lokalen Zustand persistieren (Dateien/SQLite)?"
+    adr_template: adr-local-state.md
+    visible_if:
+      - { node: delivery, in: [cli_tool, script] }
+    options:
+      - value: none
+        label: "Nein — zustandslos"
+        default: true
+      - value: sqlite
+        label: "Ja — lokale SQLite/Dateien"
+
+  - key: auth
+    question: "Braucht es Login / geschützte Bereiche?"
+    adr_template: adr-auth.md
+    visible_if:
+      - { node: delivery, in: [web_app, api_service] }
+    options:
+      - value: "yes"
+        label: "Ja"
+        default: true
+      - value: "no"
+        label: "Nein — komplett öffentlich"
+
+  - key: multi_tenancy
+    # Two parents — the reason this is a DAG and not a tree.
+    question: "Müssen Daten mehrerer Kunden/Organisationen strikt getrennt werden?"
+    adr_template: adr-multi-tenancy.md
+    visible_if:
+      - { node: auth, in: ["yes"] }
+      - { node: persistence, in: [neon_postgres] }
+    options:
+      - value: "no"
+        label: "Nein — ein gemeinsamer Datenraum"
+        default: true
+      - value: "yes"
+        label: "Ja — Tenant Isolation (Row Level Security)"
+
+  - key: frontend
+    question: "Frontend-Stack?"
+    adr_template: adr-frontend.md
+    advanced: true          # default path: React ohne Rückfrage
+    visible_if:
+      - { node: delivery, in: [web_app] }
+    options:
+      - value: react
+        label: "React (SPA gegen API)"
+        default: true
+      - value: static
+        label: "Statisches HTML (kein Framework)"
+
+  - key: realtime
+    question: "Braucht die Anwendung Server-Push (Live-Updates)?"
+    adr_template: adr-realtime.md
+    advanced: true
+    visible_if:
+      - { node: delivery, in: [web_app, api_service] }
+    options:
+      - value: none
+        label: "Nein"
+        default: true
+      - value: sse
+        label: "Ja — SSE (Streaming)"
+      - value: signalr
+        label: "Ja — SignalR (bidirektional, Redis-Backplane)"
+
+  - key: deployment
+    question: "Wohin wird deployed?"
+    adr_template: adr-deployment.md
+    advanced: true
+    visible_if:
+      - { node: delivery, in: [web_app, api_service] }
+    options:
+      - value: railway
+        label: "Railway (Haus-Default)"
+        default: true
+      - value: manual
+        label: "Eigenes Target (wird als Backlog-Card vertagt)"

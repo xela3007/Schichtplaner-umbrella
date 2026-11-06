@@ -1,0 +1,8 @@
+{
+  "mode": "fasttrack",
+  "answers": {
+    "delivery": "web_app",
+    "persistence": "none",
+    "auth": "no"
+  }
+}

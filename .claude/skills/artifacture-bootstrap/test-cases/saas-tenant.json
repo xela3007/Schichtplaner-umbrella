@@ -1,0 +1,5 @@
+{ "mode": "advanced",
+  "answers": { "delivery": "web_app", "language": "typescript",
+               "persistence": "neon_postgres", "auth": "yes",
+               "multi_tenancy": "yes", "frontend": "react",
+               "realtime": "sse", "deployment": "railway" } }

@@ -1,0 +1,98 @@
+# Artifacture Bootstrap Mapping
+# ==============================
+# Deterministic derivation: answers -> skeleton stories.
+#
+# RULES:
+# - Conditions are AND-combined (node, in: [...]) pairs. A rule fires iff
+#   every condition matches the answer set. Nodes not visible for a given
+#   answer set never match (derive.py resolves visibility first).
+# - sort_order encodes the topological order of the bootstrap backlog.
+#   It is fixed here, identical for every project. Rules may drop stories,
+#   never reorder them. This is the property the "10 confused stories"
+#   incident was missing.
+# - params are passed into the story template ({param} placeholders).
+# - The FINAL story (first-domain-slice) is the single sanctioned purpose
+#   gate: it is where "what is the core entity" gets asked — inside the
+#   pipeline, with a spec review, not during setup.
+
+version: "0.3.0"
+catalog_version: "0.6.0"
+
+rules:
+
+  - story_template: st-010-umbrella-repo.md
+    sort_order: 10
+    conditions: []            # always
+    params:
+      language: "{answers.language}"
+      repo_form: "{answers.repo_form}"
+
+  - story_template: st-015-sub-repos.md
+    sort_order: 15
+    conditions:
+      - { node: repo_form, in: [multi] }
+
+  - story_template: st-020-ci-basics.md
+    sort_order: 20
+    conditions: []            # always
+
+  - story_template: st-030-backend-skeleton.md
+    sort_order: 30
+    conditions:
+      - { node: delivery, in: [web_app, api_service] }
+    params:
+      language: "{answers.language}"
+
+  - story_template: st-035-cli-skeleton.md
+    sort_order: 30            # same slot — mutually exclusive with st-030
+    conditions:
+      - { node: delivery, in: [cli_tool, script] }
+    params:
+      language: "{answers.language}"
+      local_state: "{answers.local_state}"
+
+  - story_template: st-040-persistence-neon.md
+    sort_order: 40
+    conditions:
+      - { node: persistence, in: [neon_postgres] }
+
+  - story_template: st-050-auth.md
+    sort_order: 50
+    conditions:
+      - { node: auth, in: ["yes"] }
+
+  - story_template: st-055-tenant-isolation.md
+    sort_order: 55
+    conditions:
+      - { node: multi_tenancy, in: ["yes"] }
+
+  - story_template: st-060-frontend-react.md
+    sort_order: 60
+    conditions:
+      - { node: frontend, in: [react] }
+
+  - story_template: st-065-frontend-static.md
+    sort_order: 60            # same slot — mutually exclusive with st-060
+    conditions:
+      - { node: frontend, in: [static] }
+
+  - story_template: st-070-realtime.md
+    sort_order: 70
+    conditions:
+      - { node: realtime, in: [sse, signalr] }
+    params:
+      mode: "{answers.realtime}"
+
+  - story_template: st-080-deployment-railway.md
+    sort_order: 80
+    conditions:
+      - { node: deployment, in: [railway] }
+
+  - story_template: st-085-deployment-deferred.md
+    sort_order: 80
+    conditions:
+      - { node: deployment, in: [manual] }
+
+  - story_template: st-090-first-domain-slice.md
+    sort_order: 90
+    conditions: []            # always — the purpose gate lives HERE, last

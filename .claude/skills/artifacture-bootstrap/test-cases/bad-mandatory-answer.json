@@ -1,0 +1,9 @@
+{
+  "_why": "rbac ist ab 0.4.0 ein Pflicht-ADR, kein Node. Eine Antwort darauf muss abgewiesen werden — sonst glaubt jemand, er koennte RBAC abwaehlen.",
+  "mode": "advanced",
+  "answers": {
+    "delivery": "web_app",
+    "auth": "yes",
+    "rbac": "no"
+  }
+}

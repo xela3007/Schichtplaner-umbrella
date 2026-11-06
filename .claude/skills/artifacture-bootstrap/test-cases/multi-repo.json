@@ -1,0 +1,14 @@
+{
+  "mode": "advanced",
+  "answers": {
+    "delivery": "web_app",
+    "language": "typescript",
+    "repo_form": "multi",
+    "persistence": "neon_postgres",
+    "auth": "yes",
+    "multi_tenancy": "no",
+    "frontend": "react",
+    "realtime": "none",
+    "deployment": "railway"
+  }
+}

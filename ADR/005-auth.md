@@ -32,10 +32,12 @@
 - Ein fehlender Mail-API-Key bricht den Start **nicht** ab, meldet sich in
   `production` aber unübersehbar auf stderr. Sonst können neu registrierte
   Nutzer sich nie anmelden, ohne dass es jemand merkt
-- **Refresh-Cookie bei getrennten Domains:** `SameSite=None` + `Secure` in
-  Produktion, `Lax` lokal. Liegen Frontend und API auf verschiedenen Domains,
-  schickt der Browser ein `Lax`-Cookie cross-site nicht mit und jeder Refresh
-  scheitert. `None` verlangt zwingend `Secure`
+- **Refresh-Cookie je nach Deployment:** Liefert das Frontend die API-Pfade
+  unter derselben Origin aus (ADR-014), gilt `SameSite=Lax` + `Secure`.
+  Nur bei getrennten Domains wäre `SameSite=None` + `Secure` nötig — dann
+  blockieren Safari und Firefox das Cookie allerdings als Drittanbieter-Cookie.
+  Lokal `Lax` ohne `Secure`. Der Wert ist per env konfigurierbar
+  (geändert 2026-11-07)
 - Löschen des Cookies muss dieselben Attribute tragen wie das Setzen — sonst
   ignoriert der Browser die Anweisung
 - **Produktion braucht eine verifizierte Absender-Domain.** Test-Absender der

@@ -2,6 +2,8 @@
 
 - Datum: 2026-11-06
 - Entscheidung: **Ja** (Haus-Default, unverändert übernommen)
+- Status: accepted, geändert 2026-11-07 (Rate-Limit-Speicher, Login erst nach
+  Verifikation, Mail-Anbieter vertagt)
 
 ## Festlegungen
 - Eigene Auth-Implementierung — kein externer IdP (Auth0, Clerk, Cognito)
@@ -13,6 +15,14 @@
 - Token-Claims tragen Rechte, nicht Rollen (siehe RBAC-ADR)
 - **Registrierung ist offen**: Self-Signup mit E-Mail-Verifikation. Ein offener
   Signup-Endpoint ist Teil der Angriffsfläche und braucht Rate-Limiting
+- **Rate-Limit-Zähler liegen in der Datenbank**, nicht im Arbeitsspeicher: sie
+  überstehen Deploys und gelten über mehrere Instanzen hinweg. Ein Zähler wird
+  mit einem einzigen atomaren Upsert erhöht — der HTTP-Treiber kennt keine
+  Transaktionen (Persistenz-ADR)
+- **Login erst nach bestätigter E-Mail-Adresse.** Vorher antwortet der Login
+  mit einem eindeutigen Hinweis, statt eingeschränkt zu funktionieren
+- Ein echter Mail-Anbieter wird erst mit einer verifizierten Absender-Domain
+  angebunden; bis dahin gilt der `ConsoleMailer`
 - Frisch registrierte Nutzer bekommen eine Default-Rolle mit minimalen Rechten
   — nie implizit mehr, weil sie eingeloggt sind
 - Einladungen existieren zusätzlich, sind aber keine Alternative zum Self-Signup

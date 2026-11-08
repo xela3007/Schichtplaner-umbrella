@@ -14,7 +14,12 @@
   Auto-Increment-IDs — sie verraten Datensatzzahlen und kollidieren beim
   Zusammenführen
 - Jede Tabelle hat `created_at` und `updated_at` (timestamptz, UTC)
-- Zeiten immer `timestamptz` in UTC, Umrechnung erst im Frontend
+- Zeitpunkte immer `timestamptz` in UTC, Umrechnung erst im Frontend
+- **Ausnahme: Uhrzeiten ohne Datum** (Öffnungszeiten, später wiederkehrende
+  Schichtzeiten) werden als **Ortszeit Europe/Berlin** im Format `HH:MM`
+  gespeichert. Eine in UTC umgerechnete Uhrzeit verschiebt sich bei jeder
+  Zeitumstellung um eine Stunde — „07:30“ muss immer 07:30 bleiben
+  (geändert 2026-11-08)
 - Geldbeträge als Integer in kleinster Einheit (Cent) — nie Float
 - Kein Soft-Delete im Default. Wo Historie gebraucht wird, ist das eine
   fachliche Entscheidung mit eigener Tabelle, kein `deleted_at`-Flag überall

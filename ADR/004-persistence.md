@@ -20,6 +20,12 @@
   gespeichert. Eine in UTC umgerechnete Uhrzeit verschiebt sich bei jeder
   Zeitumstellung um eine Stunde — „07:30“ muss immer 07:30 bleiben
   (geändert 2026-11-08)
+- **Ausnahme: Planungsdaten mit Kalendertag** (Abwesenheiten, später
+  geplante Schichten) werden als **Kalenderdatum** (`date`) plus optionale
+  **Ortszeit Europe/Berlin** `HH:MM` gespeichert, nicht als UTC-Zeitpunkt.
+  So sind sie direkt mit Öffnungs- und Schichtzeiten vergleichbar, und ein
+  Termin „05.10., 14:00–16:00“ bleibt auch an Zeitumstellungstagen genau das
+  (geändert 2026-11-08)
 - Geldbeträge als Integer in kleinster Einheit (Cent) — nie Float
 - Kein Soft-Delete im Default. Wo Historie gebraucht wird, ist das eine
   fachliche Entscheidung mit eigener Tabelle, kein `deleted_at`-Flag überall
